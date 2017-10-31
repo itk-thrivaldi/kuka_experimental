@@ -41,14 +41,20 @@
 
 #include <stdexcept>
 
-
 namespace kuka_rsi_hw_interface
 {
-
-KukaHardwareInterface::KukaHardwareInterface() :
-    joint_position_(6, 0.0), joint_velocity_(6, 0.0), joint_effort_(6, 0.0), joint_position_command_(6, 0.0), joint_velocity_command_(
-        6, 0.0), joint_effort_command_(6, 0.0), joint_names_(6), rsi_initial_joint_positions_(6, 0.0), rsi_joint_position_corrections_(
-        6, 0.0), ipoc_(0), n_dof_(6)
+KukaHardwareInterface::KukaHardwareInterface()
+  : joint_position_(6, 0.0)
+  , joint_velocity_(6, 0.0)
+  , joint_effort_(6, 0.0)
+  , joint_position_command_(6, 0.0)
+  , joint_velocity_command_(6, 0.0)
+  , joint_effort_command_(6, 0.0)
+  , joint_names_(6)
+  , rsi_initial_joint_positions_(6, 0.0)
+  , rsi_joint_position_corrections_(6, 0.0)
+  , ipoc_(0)
+  , n_dof_(6)
 {
   in_buffer_.resize(1024);
   out_buffer_.resize(1024);
@@ -58,23 +64,21 @@ KukaHardwareInterface::KukaHardwareInterface() :
   if (!nh_.getParam("controller_joint_names", joint_names_))
   {
     ROS_ERROR("Cannot find required parameter 'controller_joint_names' "
-      "on the parameter server.");
+              "on the parameter server.");
     throw std::runtime_error("Cannot find required parameter "
-      "'controller_joint_names' on the parameter server.");
+                             "'controller_joint_names' on the parameter server.");
   }
 
-  //Create ros_control interfaces
+  // Create ros_control interfaces
   for (std::size_t i = 0; i < n_dof_; ++i)
   {
     // Create joint state interface for all joints
-    joint_state_interface_.registerHandle(
-        hardware_interface::JointStateHandle(joint_names_[i], &joint_position_[i], &joint_velocity_[i],
-                                             &joint_effort_[i]));
+    joint_state_interface_.registerHandle(hardware_interface::JointStateHandle(joint_names_[i], &joint_position_[i],
+                                                                               &joint_velocity_[i], &joint_effort_[i]));
 
     // Create joint position control interface
-    position_joint_interface_.registerHandle(
-        hardware_interface::JointHandle(joint_state_interface_.getHandle(joint_names_[i]),
-                                        &joint_position_command_[i]));
+    position_joint_interface_.registerHandle(hardware_interface::JointHandle(
+        joint_state_interface_.getHandle(joint_names_[i]), &joint_position_command_[i]));
   }
 
   // Register interfaces
@@ -86,7 +90,6 @@ KukaHardwareInterface::KukaHardwareInterface() :
 
 KukaHardwareInterface::~KukaHardwareInterface()
 {
-
 }
 
 bool KukaHardwareInterface::read(const ros::Time time, const ros::Duration period)
@@ -98,7 +101,8 @@ bool KukaHardwareInterface::read(const ros::Time time, const ros::Duration perio
     return false;
   }
 
-  if (rt_rsi_pub_->trylock()){
+  if (rt_rsi_pub_->trylock())
+  {
     rt_rsi_pub_->msg_.data = in_buffer_;
     rt_rsi_pub_->unlockAndPublish();
   }
@@ -156,15 +160,14 @@ void KukaHardwareInterface::start()
   // Set receive timeout to 1 second
   server_->set_timeout(1000);
   ROS_INFO_STREAM_NAMED("kuka_hardware_interface", "Got connection from robot");
-
 }
 
 void KukaHardwareInterface::configure()
 {
   if (nh_.getParam("rsi/listen_address", local_host_) && nh_.getParam("rsi/listen_port", local_port_))
   {
-    ROS_INFO_STREAM_NAMED("kuka_hardware_interface",
-                          "Setting up RSI server on: (" << local_host_ << ", " << local_port_ << ")");
+    ROS_INFO_STREAM_NAMED("kuka_hardware_interface", "Setting up RSI server on: (" << local_host_ << ", " << local_port_
+                                                                                   << ")");
   }
   else
   {
@@ -174,4 +177,4 @@ void KukaHardwareInterface::configure()
   rt_rsi_pub_.reset(new realtime_tools::RealtimePublisher<std_msgs::String>(nh_, "rsi_xml_doc", 3));
 }
 
-} // namespace kuka_rsi_hardware_interface
+}  // namespace kuka_rsi_hardware_interface

@@ -44,7 +44,6 @@
 
 namespace kuka_rsi_hw_interface
 {
-
 class RSICommand
 {
 public:
@@ -84,6 +83,6 @@ RSICommand::RSICommand(std::vector<double> joint_position_correction, unsigned l
   xml_doc = printer.Str();
 }
 
-} // namespace kuka_rsi_hw_interface
+}  // namespace kuka_rsi_hw_interface
 
 #endif

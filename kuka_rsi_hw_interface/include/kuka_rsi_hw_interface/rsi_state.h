@@ -44,19 +44,13 @@
 
 namespace kuka_rsi_hw_interface
 {
-
 class RSIState
 {
-
 private:
   std::string xml_doc_;
 
 public:
-  RSIState() :
-    positions(6, 0.0),
-    initial_positions(6, 0.0),
-    cart_position(6, 0.0),
-    initial_cart_position(6, 0.0)
+  RSIState() : positions(6, 0.0), initial_positions(6, 0.0), cart_position(6, 0.0), initial_cart_position(6, 0.0)
   {
     xml_doc_.resize(1024);
   }
@@ -72,15 +66,14 @@ public:
   std::vector<double> initial_cart_position;
   // IPOC
   unsigned long long ipoc;
-
 };
 
-RSIState::RSIState(std::string xml_doc) :
-  xml_doc_(xml_doc),
-  positions(6, 0.0),
-  initial_positions(6, 0.0),
-  cart_position(6, 0.0),
-  initial_cart_position(6, 0.0)
+RSIState::RSIState(std::string xml_doc)
+  : xml_doc_(xml_doc)
+  , positions(6, 0.0)
+  , initial_positions(6, 0.0)
+  , cart_position(6, 0.0)
+  , initial_cart_position(6, 0.0)
 {
   // Parse message from robot
   TiXmlDocument bufferdoc;
@@ -124,6 +117,6 @@ RSIState::RSIState(std::string xml_doc) :
   ipoc = std::stoull(ipoc_el->FirstChild()->Value());
 }
 
-} // namespace kuka_rsi_hw_interface
+}  // namespace kuka_rsi_hw_interface
 
 #endif

@@ -48,7 +48,6 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 
-
 // ros_control
 #include <realtime_tools/realtime_publisher.h>
 #include <controller_manager/controller_manager.h>
@@ -68,15 +67,12 @@
 
 namespace kuka_rsi_hw_interface
 {
-
 static const double RAD2DEG = 57.295779513082323;
 static const double DEG2RAD = 0.017453292519943295;
 
 class KukaHardwareInterface : public hardware_interface::RobotHW
 {
-
 private:
-
   // ROS node handle
   ros::NodeHandle nh_;
 
@@ -118,7 +114,6 @@ private:
   hardware_interface::PositionJointInterface position_joint_interface_;
 
 public:
-
   KukaHardwareInterface();
   ~KukaHardwareInterface();
 
@@ -126,9 +121,8 @@ public:
   void configure();
   bool read(const ros::Time time, const ros::Duration period);
   bool write(const ros::Time time, const ros::Duration period);
-
 };
 
-} // namespace kuka_rsi_hw_interface
+}  // namespace kuka_rsi_hw_interface
 
 #endif
