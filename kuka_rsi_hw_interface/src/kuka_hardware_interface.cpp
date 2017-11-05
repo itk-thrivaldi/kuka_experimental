@@ -71,8 +71,24 @@ KukaHardwareInterface::KukaHardwareInterface()
   {
     ROS_ERROR("Cannot find required parameter 'controller_joint_names' "
               "on the parameter server.");
+
     throw std::runtime_error("Cannot find required parameter "
                              "'controller_joint_names' on the parameter server.");
+  }
+
+  nh_.param(std::string("force_torque_sensor_topic"), force_torque_sensor_topic_, std::string("ft_sensor/raw"));
+  if (nh_.hasParam("force_torque_sensor_topic"))
+  {
+    ROS_WARN("Cannot find parameter 'force_torque_sensor_topic' on the parameter server, using default "
+             "'ft_sensor/raw'");
+  }
+
+  if (!nh_.getParam("force_torque_sensor_frame", force_torque_sensor_frame_))
+  {
+    ROS_ERROR("Cannot find required parameter 'force_torque_sensor_frame' "
+              "on the parameter server.");
+    throw std::runtime_error("Cannot find required parameter "
+                             "'force_torque_sensor_frame' on the parameter server.");
   }
 
   // Create ros_control interfaces
@@ -87,9 +103,13 @@ KukaHardwareInterface::KukaHardwareInterface()
         joint_state_interface_.getHandle(joint_names_[i]), &joint_position_command_[i]));
   }
 
+  force_torque_sensor_interface_.registerHandle(hardware_interface::ForceTorqueSensorHandle(
+      force_torque_sensor_topic_, force_torque_sensor_frame_, force_, torque_));
+
   // Register interfaces
   registerInterface(&joint_state_interface_);
   registerInterface(&position_joint_interface_);
+  registerInterface(&force_torque_sensor_interface_);
 
   ROS_INFO_STREAM_NAMED("hardware_interface", "Loaded kuka_rsi_hardware_interface");
 }
@@ -113,16 +133,27 @@ bool KukaHardwareInterface::read(const ros::Time time, const ros::Duration perio
   }
 
   rsi_state_ = RSIState(in_buffer_);
+
+  // Update joint position
   for (std::size_t i = 0; i < 6; ++i)
   {
     joint_position_[i] = DEG2RAD * rsi_state_.positions[i];
   }
 
+  // Update joint position for external axes
   for (std::size_t i = 6; i < n_dof_; ++i)
   {
     joint_position_[i] = DEG2RAD * rsi_state_.positions[i] / 1000;
   }
+  
+  // Update force and torque
+  for (std::size_t i = 0; i < 3; ++i)
+  {
+    force_[i] = rsi_state_.force[i];
+    torque_[i] = rsi_state_.torque[i];
+  }
 
+  // Update IPOC number
   ipoc_ = rsi_state_.ipoc;
 
   return true;
@@ -171,6 +202,8 @@ void KukaHardwareInterface::start()
   }
 
   rsi_state_ = RSIState(in_buffer_);
+
+  // Set initial joint positions
   for (std::size_t i = 0; i < 6; ++i)
   {
     joint_position_[i] = DEG2RAD * rsi_state_.positions[i];
@@ -178,6 +211,7 @@ void KukaHardwareInterface::start()
     rsi_initial_joint_positions_[i] = rsi_state_.initial_positions[i];
   }
 
+  // Set initial joint positions for external axes
   for (std::size_t i = 6; i < n_dof_; ++i)
   {
     joint_position_[i] = DEG2RAD * rsi_state_.positions[i] / 1000;

@@ -50,22 +50,33 @@ private:
   std::string xml_doc_;
 
 public:
-  RSIState() : positions(12, 0.0), initial_positions(12, 0.0), cart_position(12, 0.0), initial_cart_position(12, 0.0)
+  RSIState() : positions(12, 0.0), initial_positions(12, 0.0), cart_position(12, 0.0), initial_cart_position(12, 0.0), force(3, 0.0), torque(3, 0.0)
   {
     xml_doc_.resize(1024);
   }
 
   RSIState(std::string xml_doc);
+
   // AIPOS
   std::vector<double> positions;
+
   // ASPos
   std::vector<double> initial_positions;
+
   // RIst
   std::vector<double> cart_position;
+
   // RSol
   std::vector<double> initial_cart_position;
+
   // IPOC
   unsigned long long ipoc;
+
+  // Force
+  std::vector<double> force;
+
+  // Tourqe
+  std::vector<double> torque;
 };
 
 RSIState::RSIState(std::string xml_doc)
@@ -74,6 +85,8 @@ RSIState::RSIState(std::string xml_doc)
   , initial_positions(12, 0.0)
   , cart_position(12, 0.0)
   , initial_cart_position(12, 0.0)
+  , force(3, 0.0)
+  , torque(3, 0.0)
 {
   // Parse message from robot
   TiXmlDocument bufferdoc;
@@ -136,6 +149,17 @@ RSIState::RSIState(std::string xml_doc)
     ESPos_el->Attribute("E4", &initial_positions[9]);
     ESPos_el->Attribute("E5", &initial_positions[10]);
     ESPos_el->Attribute("E6", &initial_positions[11]);
+  }
+  // Get FT data if available
+  TiXmlElement* FTC_el = rob->FirstChildElement("FTC");
+  if (FTC_el)
+  {
+    FTC_el->Attribute("Fx", &force[0]);
+    FTC_el->Attribute("Fy", &force[1]);
+    FTC_el->Attribute("Fz", &force[2]);
+    FTC_el->Attribute("Mx", &torque[0]);
+    FTC_el->Attribute("My", &torque[1]);
+    FTC_el->Attribute("Mz", &torque[2]);
   }
 }
 
